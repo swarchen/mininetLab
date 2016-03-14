@@ -8,11 +8,13 @@ class MyTopo( Topo ):
 		Topo.__init__( self )
 		"Create topology logic with tree layer n"
 		d = {}
-		for h in range(2**n - 1):
-			if (h <= 2**(n-1) - 1):
-				d["Host" + str(h+1)] = self.addHost( 'h%s' % (h+1))
+		for h in range(1,2**n ):
+			if (h <= 2**(n-1) ):
+				d["Host" + str(h)] = self.addHost( 'h%s' % (h))
 			else :
-				d["Switch" + str(h+1)] = self.addSwitch( 's%s' % (h+1) )
+				d["Switch" + str(h)] = self.addSwitch( 's%s' % (h) )
+		#"Add ryu controller"
+		#self.addController('ryu controller', controller=RemoteController, port=6633)
 		"Link all hosts and switches"
 		self.addLink(d['Host1'],d['Switch11'],bw=10)
 		self.addLink(d['Host2'],d['Switch11'],bw=10)
