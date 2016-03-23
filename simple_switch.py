@@ -62,7 +62,7 @@ class SimpleSwitch(app_manager.RyuApp):
         dpid = datapath.id
         self.mac_to_port.setdefault(dpid, {})
 
-        #self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
+        self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
 
         # learn a mac address to avoid FLOOD next time.
         self.mac_to_port[dpid][src] = in_port
@@ -90,6 +90,7 @@ class SimpleSwitch(app_manager.RyuApp):
                 else:                    
                     self.add_flow(datapath, 1, match, actions1)
         else:
+            self.logger.info("In switch2 or 3")
             if in_port ==1:
                 if msg.buffer_id != ofproto.OFP_NO_BUFFER:
                     self.add_flow(datapath, 1, match, actions2, msg.buffer_id)
@@ -119,6 +120,6 @@ class SimpleSwitch(app_manager.RyuApp):
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data
 
-        # out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
-        #                           in_port=in_port, actions=actions, data=data)
-        # datapath.send_msg(out)
+        out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
+                                  in_port=in_port, actions=actions2, data=data)
+        datapath.send_msg(out)
