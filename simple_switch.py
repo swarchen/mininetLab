@@ -73,6 +73,13 @@ class SimpleSwitch(app_manager.RyuApp):
 
         # install a flow to avoid packet_in next time
         #if out_port != ofproto.OFPP_FLOOD:
+
+        if dst in self.mac_to_port[dpid]:
+            out_port = self.mac_to_port[dpid][dst]
+        else:
+            out_port = ofproto.OFPP_FLOOD
+        actions = [parser.OFPActionOutput(out_port)]
+
         match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
         # verify if we have a valid buffer_id, if yes avoid to send both
         # flow_mod & packet_out
@@ -121,5 +128,5 @@ class SimpleSwitch(app_manager.RyuApp):
             data = msg.data
 
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
-                                  in_port=in_port, actions=actions2, data=data)
+                                  in_port=in_port, actions=actions, data=data)
         datapath.send_msg(out)
