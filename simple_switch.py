@@ -53,38 +53,66 @@ class SimpleSwitch(app_manager.RyuApp):
         parser = datapath.ofproto_parser
         in_port = msg.match['in_port']
 
-        pkt = packet.Packet(msg.data)
-        eth = pkt.get_protocols(ethernet.ethernet)[0]
+        # pkt = packet.Packet(msg.data)
+        # eth = pkt.get_protocols(ethernet.ethernet)[0]
 
-        dst = eth.dst
-        src = eth.src
+        # dst = eth.dst
+        # src = eth.src
 
         dpid = datapath.id
-        self.mac_to_port.setdefault(dpid, {})
+        # self.mac_to_port.setdefault(dpid, {})
 
-        #self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
+        # self.logger.info("packet in %s %s %s %s", dpid, src, dst, in_port)
 
-        # learn a mac address to avoid FLOOD next time.
-        self.mac_to_port[dpid][src] = in_port
-        if dst in self.mac_to_port[dpid]:
-            out_port = self.mac_to_port[dpid][dst]
-        else:
-            out_port = ofproto.OFPP_FLOOD
-        actions = [parser.OFPActionOutput(out_port)]
-        self.logger.info("dpid:<%s>\nin_port<%s>\tout_port:<%s>\nactions:<%s>",dpid,in_port , out_port,actions)
+        # # learn a mac address to avoid FLOOD next time.
+        # self.mac_to_port[dpid][src] = in_port
 
-        # install a flow to avoid packet_in next time
-        if out_port != ofproto.OFPP_FLOOD:
-            match = parser.OFPMatch(in_port=in_port, eth_dst=dst)
-            # verify if we have a valid buffer_id, if yes avoid to send both
-            # flow_mod & packet_out
-            if msg.buffer_id != ofproto.OFP_NO_BUFFER:
-                #self.logger.info("no buffer in <%s> <%s> <%s> <%s>", datapath, match, actions, msg.buffer_id)
-                self.add_flow(datapath, 1, match, actions, msg.buffer_id)
-                return
+        # # install a flow to avoid packet_in next time
+        # #if out_port != ofproto.OFPP_FLOOD:
+
+        match = parser.OFPMatch(in_port=in_port)
+        # verify if we have a valid buffer_id, if yes avoid to send both
+        # flow_mod & packet_out
+        self.logger.info("in_port<%s>", in_port)
+        if dpid == 1:
+            if in_port ==1:
+                actions = [parser.OFPActionOutput(2)]
+                if msg.buffer_id != ofproto.OFP_NO_BUFFER:
+                    self.add_flow(datapath, 1, match, actions, msg.buffer_id)
+                    return
+                else:                    
+                    self.add_flow(datapath, 1, match, actions)
             else:
-                #self.logger.info("test in<%s> <%s> <%s> <%s>", datapath, match, actions, msg.buffer_id)
-                self.add_flow(datapath, 1, match, actions)
+                actions = [parser.OFPActionOutput(1)]
+                if msg.buffer_id != ofproto.OFP_NO_BUFFER:
+                    self.add_flow(datapath, 1, match, actions, msg.buffer_id)
+                    return
+                else:                    
+                    self.add_flow(datapath, 1, match, actions)
+        else:
+            self.logger.info("In switch2 or 3")
+            if in_port ==1:
+                actions = [parser.OFPActionOutput(2),parser.OFPActionOutput(3)]
+                if msg.buffer_id != ofproto.OFP_NO_BUFFER:
+                    self.add_flow(datapath, 1, match, actions, msg.buffer_id)
+                    return
+                else:                    
+                    self.add_flow(datapath, 1, match, actions)
+            elif in_port == 2:
+                actions = [parser.OFPActionOutput(1),parser.OFPActionOutput(3)]
+                if msg.buffer_id != ofproto.OFP_NO_BUFFER:
+                    self.add_flow(datapath, 1, match, actions, msg.buffer_id)
+                    return
+                else:                    
+                    self.add_flow(datapath, 1, match, actions)
+            else:
+                actions = [parser.OFPActionOutput(2),parser.OFPActionOutput(1)]
+                if msg.buffer_id != ofproto.OFP_NO_BUFFER:
+                    self.add_flow(datapath, 1, match, actions, msg.buffer_id)
+                    return
+                else:                    
+                    self.add_flow(datapath, 1, match, actions)
+
         data = None
         if msg.buffer_id == ofproto.OFP_NO_BUFFER:
             data = msg.data
